@@ -1,52 +1,5 @@
-// import * as React from "react";
-// import { ThemeProvider, createTheme } from "@mui/material/styles";
-// import CssBaseline from "@mui/material/CssBaseline";
-// import Divider from "@mui/material/Divider";
+import React, { useMemo } from "react";
 
-// import AppAppBar from "@/components/AppAppBar";
-// import getMPTheme from "@/theme/getMPTheme";
-
-// export default function MarketingPage() {
-//   const [mode, setMode] = React.useState("light");
-//   const [showCustomTheme, setShowCustomTheme] = React.useState(true);
-//   const MPTheme = createTheme(getMPTheme("light"));
-//   const defaultTheme = createTheme({ palette: { mode } });
-
-//   // This code only runs on the client side, to determine the system color preference
-//   React.useEffect(() => {
-//     // Check if there is a preferred mode in localStorage
-//     const savedMode = localStorage.getItem("themeMode");
-//     if (savedMode) {
-//       setMode(savedMode);
-//     } else {
-//       // If no preference is found, it uses system preference
-//       const systemPrefersDark = window.matchMedia(
-//         "(prefers-color-scheme: dark)"
-//       ).matches;
-//       setMode(systemPrefersDark ? "dark" : "light");
-//     }
-//   }, []);
-
-//   const toggleColorMode = () => {
-//     const newMode = mode === "dark" ? "light" : "dark";
-//     setMode(newMode);
-//     // localStorage.setItem("themeMode", newMode);
-//   };
-
-//   const toggleCustomTheme = () => {
-//     setShowCustomTheme((prev) => !prev);
-//   };
-
-//   return (
-//     <ThemeProvider theme={showCustomTheme ? MPTheme : defaultTheme}>
-//       <CssBaseline enableColorScheme />
-//       <AppAppBar />
-//       {/* <Hero /> */}
-//     </ThemeProvider>
-//   );
-// }
-
-import React from "react";
 import { Formik, Form, Field } from "formik";
 import { TextField, MenuItem, Button, Typography, Card } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -54,31 +7,13 @@ import * as Yup from "yup";
 import Layout from "@/components/Layout";
 import { Stack, InputAdornment } from "@mui/material";
 
-const carModels = [
-  { value: "BMW_X1", label: "BMW X1" },
-  { value: "BMW_X3", label: "BMW X3" },
-  { value: "BMW_X5", label: "BMW X5" },
-  // Add more models as needed
-];
-
-const months = [
-  {
-    value: 12,
-    display: "12 เดือน",
+const commonFontSize = {
+  fontSize: {
+    xs: "16px",
+    sm: "16px",
+    md: "16px",
   },
-  {
-    value: 36,
-    display: "36 เดือน",
-  },
-  {
-    value: 48,
-    display: "48 เดือน",
-  },
-  {
-    value: 60,
-    display: "60 เดือน",
-  },
-];
+};
 
 const validationSchema = Yup.object({
   carModel: Yup.string().required("เลือกรุ่นรถยนต์"),
@@ -86,7 +21,6 @@ const validationSchema = Yup.object({
   price: Yup.string().required("แสดงราคา"),
   discount: Yup.string(),
   finalPrice: Yup.string().required("ราคารถ"),
-  // .positive("ราคารถต้องเป็นจำนวนบวก"),
   downPayment: Yup.number()
     .required("เงินดาวน์")
     .positive("เงินดาวน์ต้องเป็นจำนวนบวก"),
@@ -100,7 +34,44 @@ const validationSchema = Yup.object({
 });
 
 const QuotationForm = () => {
-  console.log(process.env.XTEST);
+  const carModels = useMemo(
+    () => [
+      { value: "BMW_X1", label: "BMW X1" },
+      { value: "BMW_X3", label: "BMW X3" },
+      { value: "BMW_X5", label: "BMW X5" },
+    ],
+    []
+  );
+
+  const months = useMemo(
+    () => [
+      { value: 12, display: "12 เดือน" },
+      { value: 36, display: "36 เดือน" },
+      { value: 48, display: "48 เดือน" },
+      { value: 60, display: "60 เดือน" },
+    ],
+    []
+  );
+  const formatPrice = (price) =>
+    price ? new Intl.NumberFormat().format(price) : "0";
+
+  const calculateDownPayment = (price, downPayment) => {
+    const parsedPrice = parseFloat(price) || 0;
+    const parsedDownPayment = parseFloat(downPayment) || 0;
+    const downPaymentValue = (parsedPrice * parsedDownPayment) / 100;
+    return formatPrice(downPaymentValue);
+  };
+
+  const calculateMonthlyPayment = (price, downPayment, installmentMonths) => {
+    const parsedPrice = parseFloat(price) || 0;
+    const parsedDownPayment = parseFloat(downPayment) || 0;
+    const parsedInstallments = parseInt(installmentMonths, 10) || 1;
+
+    const loanAmount = parsedPrice - (parsedPrice * parsedDownPayment) / 100;
+    const monthlyPayment = loanAmount / parsedInstallments;
+
+    return formatPrice(monthlyPayment);
+  };
 
   return (
     <Layout>
@@ -126,309 +97,129 @@ const QuotationForm = () => {
           <Form>
             <Card>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={6}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      เลือกรุ่นรถยนต์
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      select
-                      size="small"
-                      name="carModel"
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px", // 16px on extra-small screens (mobile)
-                            sm: "16px", // 18px on small screens (tablet)
-                            md: "16px", // 20px on medium screens (desktop)
-                          },
-                        },
-                      }}
-                      error={touched.carModel && Boolean(errors.carModel)}
-                      helperText={touched.carModel && errors.carModel}
-                    >
-                      {carModels.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Field>
-                  </Stack>
+                {/** Car Model Field **/}
+                <Grid item xs={12} sm={6}>
+                  <FieldWrapper
+                    label="เลือกรุ่นรถยนต์"
+                    name="carModel"
+                    select
+                    error={touched.carModel && Boolean(errors.carModel)}
+                    helperText={touched.carModel && errors.carModel}
+                  >
+                    {carModels.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </FieldWrapper>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={6}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      เลือกโมเดล
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      size="small"
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px", // 16px on extra-small screens (mobile)
-                            sm: "16px", // 18px on small screens (tablet)
-                            md: "16px", // 20px on medium screens (desktop)
-                          },
-                        },
-                      }}
-                      name="carVariant"
-                      error={touched.carVariant && Boolean(errors.carVariant)}
-                      helperText={touched.carVariant && errors.carVariant}
-                    />
-                  </Stack>
+                {/** Car Variant Field **/}
+                <Grid item xs={12} sm={6}>
+                  <FieldWrapper
+                    label="เลือกโมเดล"
+                    name="carVariant"
+                    error={touched.carVariant && Boolean(errors.carVariant)}
+                    helperText={touched.carVariant && errors.carVariant}
+                  />
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={6}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      ราคารถ
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      size="small"
-                      name="price"
-                      value={parseFloat(values.price).toLocaleString()}
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px", // 16px on extra-small screens (mobile)
-                            sm: "16px", // 18px on small screens (tablet)
-                            md: "16px", // 20px on medium screens (desktop)
-                          },
-                        },
-                      }}
-                      disabled
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">THB</InputAdornment>
-                          ),
-                        },
-                      }}
-                      // error={touched.price && Boolean(errors.price)}
-                      // helperText={touched.price && errors.price}
-                    />
-                  </Stack>
+                {/** Price Field **/}
+                <Grid item xs={12} sm={6}>
+                  <FieldWrapper
+                    label="ราคารถ"
+                    name="price"
+                    disabled
+                    value={formatPrice(values.price)}
+                    endAdornment="THB"
+                  />
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={6}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      ส่วนลดราคารถ(ถ้ามี)
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      size="small"
-                      value={values.discount || ""}
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px", // 16px on extra-small screens (mobile)
-                            sm: "16px", // 18px on small screens (tablet)
-                            md: "16px", // 20px on medium screens (desktop)
-                          },
-                        },
-                      }}
-                      type="tel"
-                      name="discount"
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">THB</InputAdornment>
-                          ),
-                        },
-                      }}
-                      error={touched.discount && Boolean(errors.discount)}
-                      helperText={touched.discount && errors.discount}
-                    />
-                  </Stack>
+                {/** Discount Field **/}
+                <Grid item xs={12} sm={6}>
+                  <FieldWrapper
+                    label="ส่วนลดราคารถ(ถ้ามี)"
+                    name="discount"
+                    value={values.discount}
+                    endAdornment="THB"
+                    error={touched.discount && Boolean(errors.discount)}
+                    helperText={touched.discount && errors.discount}
+                    onChange={(e) => {
+                      const input = e.target.value;
+                      const parsedValue = parsePrice(input); // Remove commas
+                      const formattedValue = formatPrice(parsedValue); // Format with commas
+                      setFieldValue("discount", formattedValue); // Set the formatted value
+                    }}
+                  />
                 </Grid>
 
-                <Grid item xs={4} sm={4} md={4}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      เงินดาวน์
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      size="small"
-                      type="tel"
-                      name="downPayment"
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px", // 16px on extra-small screens (mobile)
-                            sm: "16px", // 18px on small screens (tablet)
-                            md: "16px", // 20px on medium screens (desktop)
-                          },
-                        },
-                      }}
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">%</InputAdornment>
-                          ),
-                        },
-                      }}
-                      error={touched.downPayment && Boolean(errors.downPayment)}
-                      helperText={touched.downPayment && errors.downPayment}
-                    />
-                  </Stack>
-                </Grid>
-                <Grid item xs={8} sm={4} md={4}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      เงินดาวน์
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      size="small"
-                      type="tel"
-                      disabled
-                      value={
-                        values.downPayment &&
-                        parseFloat(
-                          (parseInt(values.price) *
-                            parseInt(values.downPayment, 10)) /
-                            100
-                        ).toLocaleString()
-                      }
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px",
-                            sm: "16px",
-                            md: "16px",
-                          },
-                        },
-                      }}
-                      name="downPayment"
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">THB</InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
-                  </Stack>
-                </Grid>
-                <Grid item xs={12} sm={4} md={4}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      ยอดจัดไฟแนนซ์
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      size="small"
-                      type="tel"
-                      disabled
-                      value={
-                        values.downPayment &&
-                        parseFloat(
-                          values.price -
-                            (parseInt(values.price) *
-                              parseInt(values.downPayment, 10)) /
-                              100
-                        ).toLocaleString()
-                      }
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px",
-                            sm: "16px",
-                            md: "16px",
-                          },
-                        },
-                      }}
-                      name="downPayment"
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">THB</InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
-                  </Stack>
+                {/** Down Payment Fields **/}
+                <Grid item xs={4} sm={6}>
+                  <FieldWrapper
+                    label="เงินดาวน์ (%)"
+                    name="downPayment"
+                    endAdornment="%"
+                    error={touched.downPayment && Boolean(errors.downPayment)}
+                    helperText={touched.downPayment && errors.downPayment}
+                  />
                 </Grid>
 
-                <Grid item xs={12} sm={4} md={4}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      จำนวนงวด
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      size="small"
-                      select
-                      name="installmentMonths"
-                      error={
-                        touched.installmentMonths &&
-                        Boolean(errors.installmentMonths)
-                      }
-                      helperText={
-                        touched.installmentMonths && errors.installmentMonths
-                      }
-                    >
-                      {months.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.display}
-                        </MenuItem>
-                      ))}
-                    </Field>
-                  </Stack>
+                <Grid item xs={8} sm={6}>
+                  <FieldWrapper
+                    label="ยอดเงินดาวน์ (THB)"
+                    name="downPaymentValue"
+                    disabled
+                    value={calculateDownPayment(
+                      values.price,
+                      values.downPayment
+                    )}
+                    endAdornment="THB"
+                  />
                 </Grid>
 
-                <Grid item xs={12} sm={4} md={4}>
-                  <Stack direction="column">
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      ค่างวดต่อเดือน
-                    </Typography>
-                    <Field
-                      as={TextField}
-                      size="small"
-                      name="monthlyPayment"
-                      value={
-                        values.downPayment &&
-                        parseFloat(
-                          (values.price -
-                            (parseInt(values.price) *
-                              parseInt(values.downPayment, 10)) /
-                              100) /
+                {/** Installment Months Field **/}
+                <Grid item xs={12} sm={6}>
+                  <FieldWrapper
+                    label="จำนวนงวด"
+                    name="installmentMonths"
+                    select
+                    error={
+                      touched.installmentMonths &&
+                      Boolean(errors.installmentMonths)
+                    }
+                    helperText={
+                      touched.installmentMonths && errors.installmentMonths
+                    }
+                  >
+                    {months.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.display}
+                      </MenuItem>
+                    ))}
+                  </FieldWrapper>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <FieldWrapper
+                    label="ค่างวดต่อเดือน (THB)"
+                    name="monthlyPayment"
+                    disabled
+                    value={
+                      values.price &&
+                      values.downPayment &&
+                      values.installmentMonths
+                        ? calculateMonthlyPayment(
+                            values.price,
+                            values.downPayment,
                             values.installmentMonths
-                        ).toLocaleString()
-                      }
-                      disabled
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px",
-                            sm: "16px",
-                            md: "16px",
-                          },
-                        },
-                      }}
-                      slotProps={{
-                        input: {
-                          endAdornment: (
-                            <InputAdornment position="end">THB</InputAdornment>
-                          ),
-                        },
-                      }}
-                      error={
-                        touched.monthlyPayment && Boolean(errors.monthlyPayment)
-                      }
-                      helperText={
-                        touched.monthlyPayment && errors.monthlyPayment
-                      }
-                    />
-                  </Stack>
+                          )
+                        : ""
+                    }
+                    endAdornment="THB"
+                  />
                 </Grid>
 
+                {/** Submit Button **/}
                 <Grid item xs={12}>
                   <Button
                     type="submit"
@@ -447,5 +238,39 @@ const QuotationForm = () => {
     </Layout>
   );
 };
+
+const FieldWrapper = ({
+  label,
+  name,
+  select,
+  children,
+  error,
+  helperText,
+  value,
+  disabled,
+  endAdornment,
+}) => (
+  <Stack direction="column">
+    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>{label}</Typography>
+    <Field
+      as={TextField}
+      name={name}
+      select={select}
+      value={value}
+      disabled={disabled}
+      size="small"
+      sx={{ "& .MuiInputBase-input": commonFontSize }}
+      InputProps={{
+        endAdornment: endAdornment && (
+          <InputAdornment position="end">{endAdornment}</InputAdornment>
+        ),
+      }}
+      error={error}
+      helperText={helperText}
+    >
+      {children}
+    </Field>
+  </Stack>
+);
 
 export default QuotationForm;
