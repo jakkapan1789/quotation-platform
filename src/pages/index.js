@@ -136,6 +136,7 @@ const QuotationForm = () => {
                     <Field
                       as={TextField}
                       size="small"
+                      sx={{ fontSize: "16px" }}
                       name="carVariant"
                       error={touched.carVariant && Boolean(errors.carVariant)}
                       helperText={touched.carVariant && errors.carVariant}
@@ -152,6 +153,7 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       name="price"
+                      sx={{ fontSize: "16px" }}
                       disabled
                       slotProps={{
                         input: {
@@ -174,6 +176,7 @@ const QuotationForm = () => {
                     <Field
                       as={TextField}
                       size="small"
+                      sx={{ fontSize: "16px" }}
                       type="tel"
                       name="discount"
                       slotProps={{
@@ -213,6 +216,7 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       type="tel"
+                      sx={{ fontSize: "16px" }}
                       name="downPayment"
                       slotProps={{
                         input: {
@@ -235,6 +239,7 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       type="tel"
+                      sx={{ fontSize: "16px" }}
                       name="downPayment"
                       slotProps={{
                         input: {
@@ -301,6 +306,7 @@ const QuotationForm = () => {
                       size="small"
                       name="monthlyPayment"
                       disabled
+                      sx={{ fontSize: "16px" }}
                       slotProps={{
                         input: {
                           endAdornment: (
