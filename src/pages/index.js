@@ -192,7 +192,11 @@ const QuotationForm = () => {
                     }
                   >
                     {months.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
+                      <MenuItem
+                        key={option.value}
+                        value={option.value}
+                        style={{ minHeight: "48px" }}
+                      >
                         {option.display}
                       </MenuItem>
                     ))}
