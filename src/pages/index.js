@@ -102,7 +102,7 @@ const QuotationForm = () => {
           // Handle form submission
         }}
       >
-        {({ errors, touched }) => (
+        {({ errors, touched, values }) => (
           <Form>
             <Card>
               <Grid container spacing={2}>
@@ -170,6 +170,7 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       name="price"
+                      value={parseFloat(values.price).toLocaleString()}
                       sx={{
                         "& .MuiInputBase-input": {
                           fontSize: {
@@ -187,8 +188,8 @@ const QuotationForm = () => {
                           ),
                         },
                       }}
-                      error={touched.price && Boolean(errors.price)}
-                      helperText={touched.price && errors.price}
+                      // error={touched.price && Boolean(errors.price)}
+                      // helperText={touched.price && errors.price}
                     />
                   </Stack>
                 </Grid>
@@ -224,21 +225,6 @@ const QuotationForm = () => {
                     />
                   </Stack>
                 </Grid>
-
-                {/* <Grid item xs={12} sm={4} md={4}>
-                <Stack direction="column">
-                  <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                    ราคารถ
-                  </Typography>
-                  <Field
-                    as={TextField}
-                    size="small"
-                    name="finalPrice"
-                    error={touched.finalPrice && Boolean(errors.finalPrice)}
-                    helperText={touched.finalPrice && errors.finalPrice}
-                  />
-                </Stack>
-              </Grid> */}
 
                 <Grid item xs={4} sm={4} md={4}>
                   <Stack direction="column">
@@ -280,6 +266,15 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       type="tel"
+                      disabled
+                      value={
+                        values.downPayment &&
+                        parseFloat(
+                          (parseInt(values.price) *
+                            parseInt(values.downPayment, 10)) /
+                            100
+                        ).toLocaleString()
+                      }
                       sx={{
                         "& .MuiInputBase-input": {
                           fontSize: {
@@ -297,26 +292,11 @@ const QuotationForm = () => {
                           ),
                         },
                       }}
-                      error={touched.downPayment && Boolean(errors.downPayment)}
-                      helperText={touched.downPayment && errors.downPayment}
+                      // error={touched.downPayment && Boolean(errors.downPayment)}
+                      // helperText={touched.downPayment && errors.downPayment}
                     />
                   </Stack>
                 </Grid>
-
-                {/* <Grid item xs={12} sm={4} md={4}>
-                <Stack direction="column">
-                  <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                    ดอกเบี้ย
-                  </Typography>
-                  <Field
-                    as={TextField}
-                    size="small"
-                    name="interestRate"
-                    error={touched.interestRate && Boolean(errors.interestRate)}
-                    helperText={touched.interestRate && errors.interestRate}
-                  />
-                </Stack>
-              </Grid> */}
 
                 <Grid item xs={12} sm={4} md={4}>
                   <Stack direction="column">
@@ -328,15 +308,6 @@ const QuotationForm = () => {
                       size="small"
                       select
                       name="installmentMonths"
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: {
-                            xs: "16px", // 16px on extra-small screens (mobile)
-                            sm: "16px", // 18px on small screens (tablet)
-                            md: "16px", // 20px on medium screens (desktop)
-                          },
-                        },
-                      }}
                       error={
                         touched.installmentMonths &&
                         Boolean(errors.installmentMonths)
@@ -345,8 +316,8 @@ const QuotationForm = () => {
                         touched.installmentMonths && errors.installmentMonths
                       }
                     >
-                      {installmentMonths.map((option, index) => (
-                        <MenuItem key={index} value={option}>
+                      {installmentMonths.map((option) => (
+                        <MenuItem key={option} value={option}>
                           {option}
                         </MenuItem>
                       ))}
