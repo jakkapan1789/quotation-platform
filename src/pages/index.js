@@ -60,13 +60,31 @@ const carModels = [
   { value: "BMW_X5", label: "BMW X5" },
   // Add more models as needed
 ];
-const installmentMonths = ["12 เดือน", "36 เดือน", "48 เดือน", "60 เดือน"];
+
+const installmentMonths = [
+  {
+    value: 12,
+    display: "12 เดือน",
+  },
+  {
+    value: 36,
+    display: "36 เดือน",
+  },
+  {
+    value: 48,
+    display: "48 เดือน",
+  },
+  {
+    value: 60,
+    display: "60 เดือน",
+  },
+];
 
 const validationSchema = Yup.object({
   carModel: Yup.string().required("เลือกรุ่นรถยนต์"),
   carVariant: Yup.string().required("เลือกโมเดล"),
   price: Yup.string().required("แสดงราคา"),
-  discount: Yup.number().min(0, "ส่วนลดต้องไม่ติดลบ"),
+  discount: Yup.string(),
   finalPrice: Yup.string().required("ราคารถ"),
   // .positive("ราคารถต้องเป็นจำนวนบวก"),
   downPayment: Yup.number()
@@ -82,6 +100,8 @@ const validationSchema = Yup.object({
 });
 
 const QuotationForm = () => {
+  console.log(process.env.XTEST);
+
   return (
     <Layout>
       <Formik
@@ -202,6 +222,7 @@ const QuotationForm = () => {
                     <Field
                       as={TextField}
                       size="small"
+                      value={values.discount || ""}
                       sx={{
                         "& .MuiInputBase-input": {
                           fontSize: {
@@ -278,9 +299,9 @@ const QuotationForm = () => {
                       sx={{
                         "& .MuiInputBase-input": {
                           fontSize: {
-                            xs: "16px", // 16px on extra-small screens (mobile)
-                            sm: "16px", // 18px on small screens (tablet)
-                            md: "16px", // 20px on medium screens (desktop)
+                            xs: "16px",
+                            sm: "16px",
+                            md: "16px",
                           },
                         },
                       }}
@@ -292,8 +313,45 @@ const QuotationForm = () => {
                           ),
                         },
                       }}
-                      // error={touched.downPayment && Boolean(errors.downPayment)}
-                      // helperText={touched.downPayment && errors.downPayment}
+                    />
+                  </Stack>
+                </Grid>
+                <Grid item xs={12} sm={4} md={4}>
+                  <Stack direction="column">
+                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
+                      ยอดจัดไฟแนนซ์
+                    </Typography>
+                    <Field
+                      as={TextField}
+                      size="small"
+                      type="tel"
+                      disabled
+                      value={
+                        values.downPayment &&
+                        parseFloat(
+                          values.price -
+                            (parseInt(values.price) *
+                              parseInt(values.downPayment, 10)) /
+                              100
+                        ).toLocaleString()
+                      }
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px",
+                            sm: "16px",
+                            md: "16px",
+                          },
+                        },
+                      }}
+                      name="downPayment"
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">THB</InputAdornment>
+                          ),
+                        },
+                      }}
                     />
                   </Stack>
                 </Grid>
@@ -317,8 +375,8 @@ const QuotationForm = () => {
                       }
                     >
                       {installmentMonths.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.display}
                         </MenuItem>
                       ))}
                     </Field>
@@ -334,6 +392,16 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       name="monthlyPayment"
+                      value={
+                        values.downPayment &&
+                        parseFloat(
+                          (values.price -
+                            (parseInt(values.price) *
+                              parseInt(values.downPayment, 10)) /
+                              100) /
+                            values.installmentMonths
+                        ).toLocaleString()
+                      }
                       disabled
                       sx={{
                         "& .MuiInputBase-input": {
