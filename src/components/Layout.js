@@ -39,6 +39,7 @@ export default function Layout({ children }) {
 
   return (
     <ThemeProvider theme={showCustomTheme ? MPTheme : defaultTheme}>
+      <title>Quotation Platform</title>
       <CssBaseline enableColorScheme />
       <AppAppBar />
 
