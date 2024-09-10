@@ -61,7 +61,7 @@ const carModels = [
   // Add more models as needed
 ];
 
-const installmentMonths = [
+const months = [
   {
     value: 12,
     display: "12 เดือน",
@@ -374,7 +374,7 @@ const QuotationForm = () => {
                         touched.installmentMonths && errors.installmentMonths
                       }
                     >
-                      {installmentMonths.map((option) => (
+                      {months.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.display}
                         </MenuItem>
@@ -406,9 +406,9 @@ const QuotationForm = () => {
                       sx={{
                         "& .MuiInputBase-input": {
                           fontSize: {
-                            xs: "16px", // 16px on extra-small screens (mobile)
-                            sm: "16px", // 18px on small screens (tablet)
-                            md: "16px", // 20px on medium screens (desktop)
+                            xs: "16px",
+                            sm: "16px",
+                            md: "16px",
                           },
                         },
                       }}
