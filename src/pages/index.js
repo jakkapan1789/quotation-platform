@@ -116,6 +116,15 @@ const QuotationForm = () => {
                       select
                       size="small"
                       name="carModel"
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px", // 16px on extra-small screens (mobile)
+                            sm: "16px", // 18px on small screens (tablet)
+                            md: "16px", // 20px on medium screens (desktop)
+                          },
+                        },
+                      }}
                       error={touched.carModel && Boolean(errors.carModel)}
                       helperText={touched.carModel && errors.carModel}
                     >
@@ -136,7 +145,15 @@ const QuotationForm = () => {
                     <Field
                       as={TextField}
                       size="small"
-                      sx={{ fontSize: "16px" }}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px", // 16px on extra-small screens (mobile)
+                            sm: "16px", // 18px on small screens (tablet)
+                            md: "16px", // 20px on medium screens (desktop)
+                          },
+                        },
+                      }}
                       name="carVariant"
                       error={touched.carVariant && Boolean(errors.carVariant)}
                       helperText={touched.carVariant && errors.carVariant}
@@ -153,7 +170,15 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       name="price"
-                      sx={{ fontSize: "16px" }}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px", // 16px on extra-small screens (mobile)
+                            sm: "16px", // 18px on small screens (tablet)
+                            md: "16px", // 20px on medium screens (desktop)
+                          },
+                        },
+                      }}
                       disabled
                       slotProps={{
                         input: {
@@ -176,7 +201,15 @@ const QuotationForm = () => {
                     <Field
                       as={TextField}
                       size="small"
-                      sx={{ fontSize: "16px" }}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px", // 16px on extra-small screens (mobile)
+                            sm: "16px", // 18px on small screens (tablet)
+                            md: "16px", // 20px on medium screens (desktop)
+                          },
+                        },
+                      }}
                       type="tel"
                       name="discount"
                       slotProps={{
@@ -216,8 +249,16 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       type="tel"
-                      sx={{ fontSize: "16px" }}
                       name="downPayment"
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px", // 16px on extra-small screens (mobile)
+                            sm: "16px", // 18px on small screens (tablet)
+                            md: "16px", // 20px on medium screens (desktop)
+                          },
+                        },
+                      }}
                       slotProps={{
                         input: {
                           endAdornment: (
@@ -239,7 +280,15 @@ const QuotationForm = () => {
                       as={TextField}
                       size="small"
                       type="tel"
-                      sx={{ fontSize: "16px" }}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px", // 16px on extra-small screens (mobile)
+                            sm: "16px", // 18px on small screens (tablet)
+                            md: "16px", // 20px on medium screens (desktop)
+                          },
+                        },
+                      }}
                       name="downPayment"
                       slotProps={{
                         input: {
@@ -279,6 +328,15 @@ const QuotationForm = () => {
                       size="small"
                       select
                       name="installmentMonths"
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px", // 16px on extra-small screens (mobile)
+                            sm: "16px", // 18px on small screens (tablet)
+                            md: "16px", // 20px on medium screens (desktop)
+                          },
+                        },
+                      }}
                       error={
                         touched.installmentMonths &&
                         Boolean(errors.installmentMonths)
@@ -306,7 +364,15 @@ const QuotationForm = () => {
                       size="small"
                       name="monthlyPayment"
                       disabled
-                      sx={{ fontSize: "16px" }}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: {
+                            xs: "16px", // 16px on extra-small screens (mobile)
+                            sm: "16px", // 18px on small screens (tablet)
+                            md: "16px", // 20px on medium screens (desktop)
+                          },
+                        },
+                      }}
                       slotProps={{
                         input: {
                           endAdornment: (
