@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 
 import { Formik, Form, Field } from "formik";
 import { TextField, MenuItem, Button, Typography, Card } from "@mui/material";
@@ -52,6 +52,11 @@ const QuotationForm = () => {
     ],
     []
   );
+  const parsePrice = (value) => {
+    // Remove all commas and return the numeric value
+    return value.replace(/,/g, "");
+  };
+
   const formatPrice = (price) =>
     price ? new Intl.NumberFormat().format(price) : "0";
 
@@ -71,6 +76,14 @@ const QuotationForm = () => {
     const monthlyPayment = loanAmount / parsedInstallments;
 
     return formatPrice(monthlyPayment);
+  };
+
+  const [discount, setDiscount] = useState("");
+  const handleChange = (e) => {
+    const input = e.target.value;
+    const parsedValue = parsePrice(input); // Remove commas
+    const formattedValue = formatPrice(parsedValue); // Format with commas
+    setDiscount(formattedValue); // Set the formatted value in state
   };
 
   return (
@@ -137,20 +150,19 @@ const QuotationForm = () => {
 
                 {/** Discount Field **/}
                 <Grid item xs={12} sm={6}>
-                  <FieldWrapper
-                    label="ส่วนลดราคารถ(ถ้ามี)"
-                    name="discount"
-                    value={values.discount}
-                    endAdornment="THB"
-                    error={touched.discount && Boolean(errors.discount)}
-                    helperText={touched.discount && errors.discount}
-                    onChange={(e) => {
-                      const input = e.target.value;
-                      const parsedValue = parsePrice(input); // Remove commas
-                      const formattedValue = formatPrice(parsedValue); // Format with commas
-                      setFieldValue("discount", formattedValue); // Set the formatted value
-                    }}
-                  />
+                  <Stack direction={"column"}>
+                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
+                      ส่วนลดราคารถ(ถ้ามี)
+                    </Typography>
+                    <TextField
+                      value={discount}
+                      onChange={handleChange}
+                      endAdornment={
+                        <InputAdornment position="end">THB</InputAdornment>
+                      }
+                      fullWidth
+                    />
+                  </Stack>
                 </Grid>
 
                 {/** Down Payment Fields **/}
@@ -167,6 +179,18 @@ const QuotationForm = () => {
                 <Grid item xs={8} sm={6}>
                   <FieldWrapper
                     label="ยอดเงินดาวน์ (THB)"
+                    name="downPaymentValue"
+                    disabled
+                    value={calculateDownPayment(
+                      values.price,
+                      values.downPayment
+                    )}
+                    endAdornment="THB"
+                  />
+                </Grid>
+                <Grid item xs={8} sm={6}>
+                  <FieldWrapper
+                    label="ยอดจัดไฟแนนซ์ (THB)"
                     name="downPaymentValue"
                     disabled
                     value={calculateDownPayment(
@@ -221,6 +245,10 @@ const QuotationForm = () => {
                     }
                     endAdornment="THB"
                   />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <FieldWrapper label="เพิ่มเติม" name="discount" />
                 </Grid>
 
                 {/** Submit Button **/}
