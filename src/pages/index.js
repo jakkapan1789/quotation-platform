@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from "react";
-
+import React, { useMemo, useEffect, useState } from "react";
 import { Formik, Form, Field } from "formik";
 import { TextField, MenuItem, Button, Typography, Card } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import * as Yup from "yup";
-import Layout from "@/components/Layout";
 import { Stack, InputAdornment } from "@mui/material";
+import { CarsBMW } from "@/data/bmw";
+import Layout from "@/components/Layout";
 
 const commonFontSize = {
   fontSize: {
@@ -15,12 +15,12 @@ const commonFontSize = {
   },
 };
 
+// Validation schema
 const validationSchema = Yup.object({
   carModel: Yup.string().required("เลือกรุ่นรถยนต์"),
   carVariant: Yup.string().required("เลือกโมเดล"),
   price: Yup.string().required("แสดงราคา"),
   discount: Yup.string(),
-  finalPrice: Yup.string().required("ราคารถ"),
   downPayment: Yup.number()
     .required("เงินดาวน์")
     .positive("เงินดาวน์ต้องเป็นจำนวนบวก"),
@@ -33,7 +33,46 @@ const validationSchema = Yup.object({
     .positive("ค่างวดต่อเดือนต้องเป็นจำนวนบวก"),
 });
 
+// Helper functions
+const parsePrice = (value) => value.replace(/,/g, "");
+const formatPrice = (price) =>
+  price ? new Intl.NumberFormat().format(price) : "0";
+
+const calculateDownPayment = (price, downPayment) => {
+  const parsedPrice = parseFloat(price) || 0;
+  const parsedDownPayment = parseFloat(downPayment) || 0;
+  const downPaymentValue = (parsedPrice * parsedDownPayment) / 100;
+  return formatPrice(downPaymentValue);
+};
+
+const calculateDiscountedPrice = (price, discount) => {
+  const parsedPrice = parseFloat(price) || 0;
+  const parsedDiscount = parseFloat(discount.replace(/,/g, "")) || 0;
+  const discountedPrice = parsedPrice - parsedDiscount;
+  return formatPrice(discountedPrice);
+};
+
+const calculateLoanAmount = (price, downPayment, discount) => {
+  const parsedPrice = parseFloat(String(price).replace(/,/g, "")) || 0;
+  const parsedDownPayment =
+    parseFloat(String(downPayment).replace(/,/g, "")) || 0;
+  const parsedDiscount = parseFloat(String(discount).replace(/,/g, "")) || 0;
+
+  const discountedPrice = parsedPrice - parsedDiscount; // Subtract discount from price
+  const loanAmount = discountedPrice - parsedDownPayment; // Then subtract down payment
+
+  return formatPrice(loanAmount);
+};
+
+const calculateMonthlyPayment = (price, downPayment, installmentMonths) => {
+  const loanAmount = price - downPayment;
+  const monthlyPayment = loanAmount / parseInt(installmentMonths, 10);
+  return formatPrice(monthlyPayment);
+};
+
 const QuotationForm = () => {
+  const [discount, setDiscount] = useState("");
+
   const carModels = useMemo(
     () => [
       { value: "BMW_X1", label: "BMW X1" },
@@ -52,33 +91,7 @@ const QuotationForm = () => {
     ],
     []
   );
-  const parsePrice = (value) => {
-    // Remove all commas and return the numeric value
-    return value.replace(/,/g, "");
-  };
 
-  const formatPrice = (price) =>
-    price ? new Intl.NumberFormat().format(price) : "0";
-
-  const calculateDownPayment = (price, downPayment) => {
-    const parsedPrice = parseFloat(price) || 0;
-    const parsedDownPayment = parseFloat(downPayment) || 0;
-    const downPaymentValue = (parsedPrice * parsedDownPayment) / 100;
-    return formatPrice(downPaymentValue);
-  };
-
-  const calculateMonthlyPayment = (price, downPayment, installmentMonths) => {
-    const parsedPrice = parseFloat(price) || 0;
-    const parsedDownPayment = parseFloat(downPayment) || 0;
-    const parsedInstallments = parseInt(installmentMonths, 10) || 1;
-
-    const loanAmount = parsedPrice - (parsedPrice * parsedDownPayment) / 100;
-    const monthlyPayment = loanAmount / parsedInstallments;
-
-    return formatPrice(monthlyPayment);
-  };
-
-  const [discount, setDiscount] = useState("");
   const handleChange = (e) => {
     const input = e.target.value;
     const parsedValue = parsePrice(input); // Remove commas
@@ -92,9 +105,8 @@ const QuotationForm = () => {
         initialValues={{
           carModel: "",
           carVariant: "",
-          price: "5200100",
+          price: "",
           discount: "",
-          finalPrice: "",
           downPayment: "",
           interestRate: "",
           installmentMonths: "",
@@ -103,202 +115,199 @@ const QuotationForm = () => {
         validationSchema={validationSchema}
         onSubmit={(values) => {
           console.log(values);
-          // Handle form submission
         }}
       >
-        {({ errors, touched, values }) => (
-          <Form>
-            <Card>
-              <Grid container spacing={2}>
-                {/** Car Model Field **/}
-                <Grid item xs={12} sm={6}>
-                  <FieldWrapper
-                    label="เลือกรุ่นรถยนต์"
-                    name="carModel"
-                    select
-                    error={touched.carModel && Boolean(errors.carModel)}
-                    helperText={touched.carModel && errors.carModel}
-                  >
-                    {carModels.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </FieldWrapper>
-                </Grid>
+        {({ errors, touched, values, setFieldValue }) => {
+          useEffect(() => {
+            const selectedCar = CarsBMW.BMW.find(
+              (car) => car.series === values.carModel
+            );
+            const selectedModel = selectedCar?.models.find(
+              (model) => model.name === values.carVariant
+            );
 
-                {/** Car Variant Field **/}
-                <Grid item xs={12} sm={6}>
-                  <FieldWrapper
-                    label="เลือกโมเดล"
-                    name="carVariant"
-                    error={touched.carVariant && Boolean(errors.carVariant)}
-                    helperText={touched.carVariant && errors.carVariant}
-                  />
-                </Grid>
+            if (selectedModel) {
+              setFieldValue("price", selectedModel.price_thb);
+            }
+          }, [values.carModel, values.carVariant, setFieldValue]);
 
-                {/** Price Field **/}
-                <Grid item xs={12} sm={6}>
-                  <FieldWrapper
-                    label="ราคารถ"
-                    name="price"
-                    disabled
-                    value={formatPrice(values.price)}
-                    endAdornment="THB"
-                  />
-                </Grid>
-
-                {/** Discount Field **/}
-                <Grid item xs={12} sm={6}>
-                  <Stack direction={"column"}>
-                    <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
-                      ส่วนลดราคารถ(ถ้ามี)
-                    </Typography>
-                    <TextField
-                      value={discount}
-                      onChange={handleChange}
-                      endAdornment={
-                        <InputAdornment position="end">THB</InputAdornment>
-                      }
-                      fullWidth
+          return (
+            <Form>
+              <Card sx={{ p: 4 }}>
+                <Grid container spacing={2}>
+                  {/* Car Model Field */}
+                  <Grid item xs={12} sm={6}>
+                    <FieldWrapper
+                      label="เลือกรุ่นรถยนต์"
+                      name="carModel"
+                      select
+                      error={touched.carModel && Boolean(errors.carModel)}
+                      helperText={touched.carModel && errors.carModel}
+                    >
+                      {CarsBMW.BMW.map((option) => (
+                        <MenuItem key={option.series} value={option.series}>
+                          {option.series}
+                        </MenuItem>
+                      ))}
+                    </FieldWrapper>
+                  </Grid>
+                  {/* Car Variant Field */}
+                  <Grid item xs={12} sm={6}>
+                    <FieldWrapper
+                      select
+                      label="เลือกโมเดล"
+                      name="carVariant"
+                      error={touched.carVariant && Boolean(errors.carVariant)}
+                      helperText={touched.carVariant && errors.carVariant}
+                    >
+                      {CarsBMW.BMW.filter(
+                        (w) => w.series === values.carModel
+                      )[0]?.models.map((model) => (
+                        <MenuItem key={model.name} value={model.name}>
+                          {model.name}
+                        </MenuItem>
+                      ))}
+                    </FieldWrapper>
+                  </Grid>
+                  {/* Price Field */}
+                  <Grid item xs={12} sm={6}>
+                    <FieldWrapper
+                      label="ราคารถ"
+                      name="price"
+                      disabled
+                      value={formatPrice(values.price)}
+                      endAdornment="THB"
                     />
-                  </Stack>
-                </Grid>
+                  </Grid>
+                  {/* Discount Field */}
+                  <Grid item xs={12} sm={6}>
+                    <Stack direction={"column"}>
+                      <Typography sx={{ color: "#455A64", fontSize: "16px" }}>
+                        ส่วนลดราคารถ(ถ้ามี)
+                      </Typography>
+                      <TextField
+                        value={discount}
+                        type="tel"
+                        onChange={handleChange}
+                        sx={{ "& .MuiInputBase-input": commonFontSize }}
+                        fullWidth
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">THB</InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Stack>
+                  </Grid>
+                  {/* Down Payment Fields */}
+                  <Grid item xs={4} sm={6}>
+                    <FieldWrapper
+                      label="เงินดาวน์ (%)"
+                      type="tel"
+                      name="downPayment"
+                      endAdornment="%"
+                      error={touched.downPayment && Boolean(errors.downPayment)}
+                      helperText={touched.downPayment && errors.downPayment}
+                    />
+                  </Grid>
+                  <Grid item xs={8} sm={6}>
+                    <FieldWrapper
+                      label="ยอดเงินดาวน์ (THB)"
+                      name="downPaymentValue"
+                      disabled
+                      value={calculateDownPayment(
+                        values.price,
+                        values.downPayment
+                      )}
+                      endAdornment="THB"
+                    />
+                  </Grid>
+                  {/* New Field: ยอดจัดไฟแนนซ์ (Loan Amount) */}
 
-                {/** Down Payment Fields **/}
-                <Grid item xs={4} sm={6}>
-                  <FieldWrapper
-                    label="เงินดาวน์ (%)"
-                    name="downPayment"
-                    endAdornment="%"
-                    error={touched.downPayment && Boolean(errors.downPayment)}
-                    helperText={touched.downPayment && errors.downPayment}
-                  />
+                  <Grid item xs={12} sm={6}>
+                    <FieldWrapper
+                      label="ยอดจัดไฟแนนซ์ (THB)"
+                      name="loanAmount"
+                      disabled
+                      value={calculateLoanAmount(
+                        values.price,
+                        calculateDownPayment(values.price, values.downPayment),
+                        discount
+                      )}
+                      endAdornment="THB"
+                    />
+                  </Grid>
+                  {/* Installment Months Field */}
+                  <Grid item xs={12} sm={6}>
+                    <FieldWrapper
+                      label="จำนวนงวด"
+                      name="installmentMonths"
+                      select
+                      error={
+                        touched.installmentMonths &&
+                        Boolean(errors.installmentMonths)
+                      }
+                      helperText={
+                        touched.installmentMonths && errors.installmentMonths
+                      }
+                    >
+                      {months.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.display}
+                        </MenuItem>
+                      ))}
+                    </FieldWrapper>
+                  </Grid>
+                  {/* Monthly Payment Field */}
+                  <Grid item xs={12} sm={6}>
+                    <FieldWrapper
+                      label="ค่างวดต่อเดือน (THB)"
+                      name="monthlyPayment"
+                      disabled
+                      value={
+                        values.price &&
+                        values.downPayment &&
+                        values.installmentMonths
+                          ? calculateMonthlyPayment(
+                              values.price,
+                              values.downPayment,
+                              values.installmentMonths
+                            )
+                          : ""
+                      }
+                      endAdornment="THB"
+                    />
+                  </Grid>
+                  {/* Submit Button */}
+                  <Grid item xs={12}>
+                    <Button type="submit" variant="contained" fullWidth>
+                      Generate Quotation
+                    </Button>
+                  </Grid>
                 </Grid>
-
-                <Grid item xs={8} sm={6}>
-                  <FieldWrapper
-                    label="ยอดเงินดาวน์ (THB)"
-                    name="downPaymentValue"
-                    disabled
-                    value={calculateDownPayment(
-                      values.price,
-                      values.downPayment
-                    )}
-                    endAdornment="THB"
-                  />
-                </Grid>
-                <Grid item xs={8} sm={6}>
-                  <FieldWrapper
-                    label="ยอดจัดไฟแนนซ์ (THB)"
-                    name="downPaymentValue"
-                    disabled
-                    value={calculateDownPayment(
-                      values.price,
-                      values.downPayment
-                    )}
-                    endAdornment="THB"
-                  />
-                </Grid>
-
-                {/** Installment Months Field **/}
-                <Grid item xs={12} sm={6}>
-                  <FieldWrapper
-                    label="จำนวนงวด"
-                    name="installmentMonths"
-                    select
-                    error={
-                      touched.installmentMonths &&
-                      Boolean(errors.installmentMonths)
-                    }
-                    helperText={
-                      touched.installmentMonths && errors.installmentMonths
-                    }
-                  >
-                    {months.map((option) => (
-                      <MenuItem
-                        key={option.value}
-                        value={option.value}
-                        style={{ minHeight: "48px" }}
-                      >
-                        {option.display}
-                      </MenuItem>
-                    ))}
-                  </FieldWrapper>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <FieldWrapper
-                    label="ค่างวดต่อเดือน (THB)"
-                    name="monthlyPayment"
-                    disabled
-                    value={
-                      values.price &&
-                      values.downPayment &&
-                      values.installmentMonths
-                        ? calculateMonthlyPayment(
-                            values.price,
-                            values.downPayment,
-                            values.installmentMonths
-                          )
-                        : ""
-                    }
-                    endAdornment="THB"
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <FieldWrapper label="เพิ่มเติม" name="discount" />
-                </Grid>
-
-                {/** Submit Button **/}
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                  >
-                    พิมพ์ใบเสนอราคา
-                  </Button>
-                </Grid>
-              </Grid>
-            </Card>
-          </Form>
-        )}
+              </Card>
+            </Form>
+          );
+        }}
       </Formik>
     </Layout>
   );
 };
 
-const FieldWrapper = ({
-  label,
-  name,
-  select,
-  children,
-  error,
-  helperText,
-  value,
-  disabled,
-  endAdornment,
-}) => (
+// Custom Field Wrapper Component
+const FieldWrapper = ({ label, children, endAdornment, ...props }) => (
   <Stack direction="column">
     <Typography sx={{ color: "#455A64", fontSize: "16px" }}>{label}</Typography>
     <Field
       as={TextField}
-      name={name}
-      select={select}
-      value={value}
-      disabled={disabled}
-      size="small"
       sx={{ "& .MuiInputBase-input": commonFontSize }}
+      fullWidth
       InputProps={{
-        endAdornment: endAdornment && (
+        endAdornment: endAdornment ? (
           <InputAdornment position="end">{endAdornment}</InputAdornment>
-        ),
+        ) : null,
       }}
-      error={error}
-      helperText={helperText}
+      {...props}
     >
       {children}
     </Field>
