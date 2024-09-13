@@ -118,18 +118,46 @@ const QuotationForm = () => {
         }}
       >
         {({ errors, touched, values, setFieldValue }) => {
-          useEffect(() => {
+          // useEffect(() => {
+          //   const selectedCar = CarsBMW.BMW.find(
+          //     (car) => car.series === values.carModel
+          //   );
+          //   const selectedModel = selectedCar?.models.find(
+          //     (model) => model.name === values.carVariant
+          //   );
+
+          //   if (selectedModel) {
+          //     setFieldValue("price", selectedModel.price_thb);
+          //   }
+          // }, [values.carModel, values.carVariant, setFieldValue]);
+          const handleCarModelChange = (event) => {
+            const carModel = event.target.value;
+            const selectedCar = CarsBMW.BMW.find(
+              (car) => car.series === carModel
+            );
+
+            setFieldValue("carModel", carModel);
+            setFieldValue("carVariant", ""); // reset car variant
+            setFieldValue("price", ""); // reset price when car model changes
+          };
+
+          const handleCarVariantChange = (event) => {
+            const carVariant = event.target.value;
             const selectedCar = CarsBMW.BMW.find(
               (car) => car.series === values.carModel
             );
             const selectedModel = selectedCar?.models.find(
-              (model) => model.name === values.carVariant
+              (model) => model.name === carVariant
             );
+
+            setFieldValue("carVariant", carVariant);
 
             if (selectedModel) {
               setFieldValue("price", selectedModel.price_thb);
+            } else {
+              setFieldValue("price", ""); // reset price if no model is found
             }
-          }, [values.carModel, values.carVariant, setFieldValue]);
+          };
 
           return (
             <Form>
@@ -140,6 +168,7 @@ const QuotationForm = () => {
                     <FieldWrapper
                       label="เลือกรุ่นรถยนต์"
                       name="carModel"
+                      onChange={handleCarModelChange}
                       select
                       error={touched.carModel && Boolean(errors.carModel)}
                       helperText={touched.carModel && errors.carModel}
@@ -157,6 +186,7 @@ const QuotationForm = () => {
                       select
                       label="เลือกโมเดล"
                       name="carVariant"
+                      onChange={handleCarVariantChange}
                       error={touched.carVariant && Boolean(errors.carVariant)}
                       helperText={touched.carVariant && errors.carVariant}
                     >
